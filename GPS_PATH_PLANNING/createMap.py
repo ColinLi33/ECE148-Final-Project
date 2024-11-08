@@ -53,8 +53,8 @@ class Graph:
     def heuristic(self, node, end):
         return distance(node, end)
     
-    def shortestPath(self, start, end):
-        frontier = [(0, start)]
+    def shortestPath(self, start, end): #A* Algorithm
+        frontier = [(0, start)] 
         came_from = {}
         cost_so_far = {start: 0}
 

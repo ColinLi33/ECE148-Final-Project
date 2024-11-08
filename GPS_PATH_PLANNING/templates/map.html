@@ -63,8 +63,6 @@
                 markers.push(marker);
                 selectedPoints.push([e.target.getLatLng().lat, e.target.getLatLng().lng]);
 
-                marker.bindPopup(selectedPoints.length === 1 ? 'Start Point' : 'End Point').openPopup();
-
                 if (selectedPoints.length === 2) {
                     $.ajax({
                         url: '/generate_path',
