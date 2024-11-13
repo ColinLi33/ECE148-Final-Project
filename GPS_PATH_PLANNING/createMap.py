@@ -103,7 +103,7 @@ def parseMap(filepath):
     features = jsonData['features']
     graph = Graph()
     all_nodes = set()
-
+    
     for feature in features:
         geometryType = feature['geometry']['type']
         coordinates = feature['geometry']['coordinates']

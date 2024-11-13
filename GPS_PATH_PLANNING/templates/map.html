@@ -38,10 +38,12 @@
     </style>    
 </head>
 <body>
+    <button id="locateMe" style="position: absolute; top: 10px; right: 10px; z-index: 1000;">Locate Me</button>
     <div id="map" style="width: 100%; height: 100vh;"></div>
     <script>
         var map = L.map('map').setView(mapData.center, 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        showUserLocation();
 
         var selectedPoints = [];
         var markers = [];
@@ -98,18 +100,6 @@
             }
         }
 
-        // mapData.edges.forEach(function(edge) {
-        //     var line = L.polyline([
-        //         [edge.start.lat, edge.start.lng],
-        //         [edge.end.lat, edge.end.lng]
-        //     ], {
-        //         color: 'green',
-        //         weight: 2,
-        //         opacity: 0.5
-        //     }).addTo(map);
-        //     edgeLines.push(line);
-        // });
-
         mapData.nodes.forEach(function(node) {
             var nodeMarker = L.circleMarker([node.lat, node.lng], {
                 radius: 5,
@@ -121,6 +111,35 @@
             nodeMarker.on('click', onNodeClick);
             nodeMarkers.push(nodeMarker);
         });
+
+        function showUserLocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    
+                    var userIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style='background-color:pink;' class='marker-pin'></div>`,
+                        iconSize: [30, 42],
+                        iconAnchor: [15, 42],
+                    });
+                    
+                    var userMarker = L.marker([lat, lng], {icon: userIcon}).addTo(map);
+                    userMarker.bindPopup("You are here").openPopup();
+
+                    map.setView([lat, lng], 15);
+                }, function(error) {
+                    console.error("Error getting user location:", error);
+                });
+            } else {
+                console.error("Geolocation is not supported by this browser.");
+            }
+        }
+        showUserLocation();
+        document.getElementById('locateMe').addEventListener('click', showUserLocation);
+
+
     </script>
 </body>
 </html>
