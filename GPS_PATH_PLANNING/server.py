@@ -47,4 +47,4 @@ if __name__ == '__main__':
     print("Generating Map...")
     ucsdMap.generateMap()
     print("Server Starting...")
-    app.run()
+    app.run('0.0.0.0')
