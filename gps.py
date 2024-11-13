@@ -8,6 +8,7 @@ ser = serial.Serial(port, baudrate=460800, timeout=0.5)
 while True:
     try:
         data = ser.readline().decode('ascii', errors='replace')
+        print(data)
         if data.startswith('$GPGGA'):
             msg = pynmea2.parse(data)
             print(f"Latitude: {msg.latitude}, Longitude: {msg.longitude}")
