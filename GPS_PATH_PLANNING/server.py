@@ -19,7 +19,7 @@ def savePath(path):
         origin = path[0]
         for node in path:
             latDiff, longDiff = lat_long_difference(origin, node)
-            f.write(f'{latDiff},{longDiff}, {0.5}\n')
+            f.write(f'{latDiff},{longDiff},{0.5}\n')
     f.close()
     print("Path saved to path.csv")
 

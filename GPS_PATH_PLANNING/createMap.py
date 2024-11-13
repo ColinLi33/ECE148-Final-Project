@@ -2,7 +2,6 @@ import geojson
 import math
 import json
 import heapq
-from scipy.spatial import cKDTree
 
 class Graph:
     def __init__(self):
@@ -103,7 +102,7 @@ def parseMap(filepath):
     features = jsonData['features']
     graph = Graph()
     all_nodes = set()
-    
+
     for feature in features:
         geometryType = feature['geometry']['type']
         coordinates = feature['geometry']['coordinates']
