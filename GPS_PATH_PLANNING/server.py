@@ -1,10 +1,31 @@
 from flask import Flask, render_template, jsonify, request
 from createMap import parseMap
 import math
+import serial
+import pynmea2
+import threading
 
 app = Flask(__name__)
 graph = {}
+currentLocation = {"lat": None, "long": None}
 
+def update_gps():
+    port = "/dev/ttyUSB1"
+    ser = serial.Serial(port, baudrate=460800, timeout=0.5)
+    
+    while True:
+        try:
+            data = ser.readline().decode('ascii', errors='replace')
+            if data.startswith('$GNGLL'):
+                msg = pynmea2.parse(data)
+                currentLocation["lat"] = msg.latitude
+                currentLocation["long"] = msg.longitude
+        except serial.SerialException as e:
+            print('Device error: {}'.format(e))
+            break
+        except pynmea2.ParseError as e:
+            print('Parse error: {}'.format(e))
+            continue
 
 def lat_long_difference(origin, node):
     lat_to_meters = 111320
@@ -41,10 +62,18 @@ def generate_path():
 
     return jsonify({"path": formattedPath})
 
+@app.route('/get_location')
+def get_location():
+    if currentLocation["latitude"] is not None and currentLocation["longitude"] is not None:
+        return jsonify(currentLocation)
+    return jsonify({"error": "No GPS fix"}), 404
+
 if __name__ == '__main__':
     print("Loading Graph...")
     ucsdMap = parseMap("./static/ucsd.geojson")
     print("Generating Map...")
     ucsdMap.generateMap()
     print("Server Starting...")
-    app.run('0.0.0.0')
+    app.run('0.0.0.0', threaded=True)
+    gps_thread = threading.Thread(target=update_gps, daemon=True)
+    gps_thread.start()

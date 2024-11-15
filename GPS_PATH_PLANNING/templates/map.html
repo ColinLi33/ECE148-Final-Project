@@ -50,6 +50,32 @@
         var path = null;
         var nodeMarkers = [];
         var edgeLines = [];
+        var userMarker = null;
+
+        function updateLocation() {
+            fetch('/get_location')
+                .then(response => response.json())
+                .then(data => {
+                    if (userMarker) {
+                        map.removeLayer(userMarker);
+                    }
+
+                    var userIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style='background-color:green;' class='marker-pin'></div>`,
+                        iconSize: [30, 42],
+                        iconAnchor: [15, 42]
+                    });
+                    
+                    userMarker = L.marker([data.latitude, data.longitude], {icon: userIcon}).addTo(map);
+                    userMarker.bindPopup("You are here").openPopup();
+                    
+                    map.setView([data.latitude, data.longitude], 15);
+                })
+                .catch(error => console.error('Error getting GPS location:', error));
+        }
+        setInterval(updateLocation, 1000);
+        document.getElementById('locateMe').addEventListener('click', updateLocation);
 
         function onNodeClick(e) {
             if (selectedPoints.length < 2) {
@@ -87,7 +113,6 @@
                     });
                 }
             } else {
-                // Reset selection
                 selectedPoints = [];
                 markers.forEach(function(marker) {
                     map.removeLayer(marker);
@@ -112,33 +137,42 @@
             nodeMarkers.push(nodeMarker);
         });
 
-        function showUserLocation() {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    var lat = position.coords.latitude;
-                    var lng = position.coords.longitude;
-                    
-                    var userIcon = L.divIcon({
-                        className: 'custom-div-icon',
-                        html: `<div style='background-color:pink;' class='marker-pin'></div>`,
-                        iconSize: [30, 42],
-                        iconAnchor: [15, 42],
-                    });
-                    
-                    var userMarker = L.marker([lat, lng], {icon: userIcon}).addTo(map);
-                    userMarker.bindPopup("You are here").openPopup();
+        // mapData.edges.forEach(function(edge) { //show edges
+        //     var line = L.polyline([
+        //         [edge.start.lat, edge.start.lng],
+        //         [edge.end.lat, edge.end.lng]
+        //     ], {
+        //         color: 'green',
+        //         weight: 2,
+        //         opacity: 0.5
+        //     }).addTo(map);
+        //     edgeLines.push(line);
+        // });
 
-                    map.setView([lat, lng], 15);
-                }, function(error) {
-                    console.error("Error getting user location:", error);
-                });
-            } else {
-                console.error("Geolocation is not supported by this browser.");
-            }
-        }
-        showUserLocation();
-        document.getElementById('locateMe').addEventListener('click', showUserLocation);
+        // function showUserLocation() {
+        //     if ("geolocation" in navigator) {
+        //         navigator.geolocation.getCurrentPosition(function(position) {
+        //             var lat = position.coords.latitude;
+        //             var lng = position.coords.longitude;
+                    
+        //             var userIcon = L.divIcon({
+        //                 className: 'custom-div-icon',
+        //                 html: `<div style='background-color:pink;' class='marker-pin'></div>`,
+        //                 iconSize: [30, 42],
+        //                 iconAnchor: [15, 42],
+        //             });
+                    
+        //             var userMarker = L.marker([lat, lng], {icon: userIcon}).addTo(map);
+        //             userMarker.bindPopup("You are here").openPopup();
 
+        //             map.setView([lat, lng], 15);
+        //         }, function(error) {
+        //             console.error("Error getting user location:", error);
+        //         });
+        //     } else {
+        //         console.error("Geolocation is not supported by this browser.");
+        //     }
+        // }
 
     </script>
 </body>
