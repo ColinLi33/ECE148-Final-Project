@@ -73,7 +73,7 @@
                 })
                 .catch(error => console.error('Error getting GPS location:', error));
         }
-        setInterval(updateLocation, 1000);
+        setInterval(updateLocation, 5000);
         document.getElementById('locateMe').addEventListener('click', updateLocation);
 
         function onNodeClick(e) {
