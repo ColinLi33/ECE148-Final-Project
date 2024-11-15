@@ -54,13 +54,16 @@ def generate_path():
     data = request.json
     start = tuple(data['start'])
     end = tuple(data['end'])
+    
+    if None in start or None in end:
+        return jsonify({"error": "Invalid GPS coordinates"}), 400
+        
     path = ucsdMap.shortestPath(start, end)
     if path is None:
         return jsonify({"error": "No path found"}), 404
     
     formattedPath = [[node[0], node[1]] for node in path]
     savePath(formattedPath)
-
     return jsonify({"path": formattedPath})
 
 @app.route('/get_location')

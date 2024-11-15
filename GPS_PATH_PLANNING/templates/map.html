@@ -67,7 +67,7 @@
                     });
                     
                     userMarker = L.marker([data.lat, data.long], {icon: userIcon}).addTo(map);
-                    userMarker.bindPopup("You are here").openPopup();
+                    // userMarker.bindPopup("You are here").openPopup();
                     
                     // map.setView([data.lat, data.longitude], 15);
                 })
@@ -77,20 +77,40 @@
         document.getElementById('locateMe').addEventListener('click', updateLocation);
 
         function onNodeClick(e) {
-            if (selectedPoints.length < 2) {
-                var markerColor = selectedPoints.length === 0 ? 'green' : 'red';
-                var markerIcon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div style='background-color:${markerColor};' class='marker-pin'></div>`,
-                    iconSize: [30, 42],
-                    iconAnchor: [15, 42]
-                });
-                
-                var marker = L.marker(e.target.getLatLng(), {icon: markerIcon}).addTo(map);
-                markers.push(marker);
-                selectedPoints.push([e.target.getLatLng().lat, e.target.getLatLng().lng]);
+            // Clear previous path and markers
+            selectedPoints = [];
+            markers.forEach(function(marker) {
+                map.removeLayer(marker);
+            });
+            markers = [];
+            if (path) {
+                map.removeLayer(path);
+                path = null;
+            }
 
-                if (selectedPoints.length === 2) {
+            // Get current location first
+            fetch('/get_location')
+                .then(response => response.json())
+                .then(data => {
+                    // Add current location as start point
+                    selectedPoints.push([data.lat, data.long]);
+
+                    // Add clicked point as end point
+                    var endPoint = [e.target.getLatLng().lat, e.target.getLatLng().lng];
+                    selectedPoints.push(endPoint);
+
+                    // Add end marker (red)
+                    var markerIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style='background-color:red;' class='marker-pin'></div>`,
+                        iconSize: [30, 42],
+                        iconAnchor: [15, 42]
+                    });
+                    
+                    var marker = L.marker(e.target.getLatLng(), {icon: markerIcon}).addTo(map);
+                    markers.push(marker);
+
+                    // Generate path
                     $.ajax({
                         url: '/generate_path',
                         type: 'POST',
@@ -110,18 +130,10 @@
                             }
                         }
                     });
-                }
-            } else {
-                selectedPoints = [];
-                markers.forEach(function(marker) {
-                    map.removeLayer(marker);
+                })
+                .catch(error => {
+                    console.error('Error getting current location:', error);
                 });
-                markers = [];
-                if (path) {
-                    map.removeLayer(path);
-                    path = null;
-                }
-            }
         }
 
         mapData.nodes.forEach(function(node) {
