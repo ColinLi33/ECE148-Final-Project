@@ -12,6 +12,7 @@ currentLocation = {"lat": None, "long": None}
 def update_gps():
     port = "/dev/ttyUSB1"
     ser = serial.Serial(port, baudrate=460800, timeout=0.5)
+    print("Started GPS Thread")
     
     while True:
         try:
@@ -64,6 +65,7 @@ def generate_path():
 
 @app.route('/get_location')
 def get_location():
+    print(currentLocation)
     if currentLocation["lat"] is not None and currentLocation["long"] is not None:
         return jsonify(currentLocation)
     return jsonify({"error": "No GPS fix"}), 404
