@@ -76,6 +76,6 @@ if __name__ == '__main__':
     print("Generating Map...")
     ucsdMap.generateMap()
     print("Server Starting...")
-    app.run('0.0.0.0', threaded=True)
     gps_thread = threading.Thread(target=update_gps, daemon=True)
     gps_thread.start()
+    app.run('0.0.0.0', threaded=True)
