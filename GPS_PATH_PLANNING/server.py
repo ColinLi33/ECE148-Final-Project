@@ -64,7 +64,7 @@ def generate_path():
 
 @app.route('/get_location')
 def get_location():
-    if currentLocation["latitude"] is not None and currentLocation["longitude"] is not None:
+    if currentLocation["lat"] is not None and currentLocation["long"] is not None:
         return jsonify(currentLocation)
     return jsonify({"error": "No GPS fix"}), 404
 
