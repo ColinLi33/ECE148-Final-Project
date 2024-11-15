@@ -79,7 +79,31 @@ class Graph:
         path.reverse()
 
         return path
+    
+    def addTemporaryNode(self, point, max_distance=50):
+        min_distance = float('inf')
+        nearest_node = None
         
+        for node in self.graph.keys():
+            dist = distance(point, node)
+            if dist < min_distance and dist <= max_distance:
+                min_distance = dist
+                nearest_node = node
+        
+        if nearest_node is None:
+            return False
+            
+        # Add the new node and connect it to its nearest neighbor
+        self.addNode(point)
+        self.addEdge(point, nearest_node, min_distance)
+        return True
+
+    def removeNode(self, node):
+        if node in self.graph:
+            for neighbor in list(self.graph[node].keys()):
+                del self.graph[neighbor][node]
+            del self.graph[node]
+            
 def degreesToRadians(degrees):
   return degrees * math.pi / 180;
 

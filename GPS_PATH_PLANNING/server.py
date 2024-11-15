@@ -52,13 +52,18 @@ def index():
 @app.route('/generate_path', methods=['POST'])
 def generate_path():
     data = request.json
-    start = tuple(data['start'])
-    end = tuple(data['end'])
+    start_point = tuple(data['start'])
+    end_point = tuple(data['end'])
+
+    if not ucsdMap.addTemporaryNode(start_point, max_distance=50):
+        return jsonify({"error": "Current location too far from known paths"}), 400
+
+    # Find path
+    path = ucsdMap.shortestPath(start_point, end_point)
     
-    if None in start or None in end:
-        return jsonify({"error": "Invalid GPS coordinates"}), 400
-        
-    path = ucsdMap.shortestPath(start, end)
+    # Clean up temporary nodes
+    ucsdMap.removeNode(start_point)
+    
     if path is None:
         return jsonify({"error": "No path found"}), 404
     
