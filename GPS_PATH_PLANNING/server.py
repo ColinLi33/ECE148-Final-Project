@@ -4,11 +4,12 @@ import math
 import serial
 import pynmea2
 import threading
+import numpy as np
 
 app = Flask(__name__)
 graph = {}
 currentLocation = {"lat": None, "long": None}
-
+# currentLocation = {"lat": 32.8750165, "long": -117.2413341}
 def update_gps():
     port = "/dev/ttyUSB1"
     ser = serial.Serial(port, baudrate=460800, timeout=0.5)
@@ -36,6 +37,14 @@ def lat_long_difference(origin, node):
     longDiff = (node[1] - origin[1]) * long_to_meters
     return latDiff, longDiff
 
+def interpolatePath(path, num_points_between=5):
+    points = np.array(path)
+    t = np.linspace(0, 1, len(points))
+    fx = np.interp(np.linspace(0, 1, (len(points)-1) * num_points_between + 1), t, points[:, 0])
+    fy = np.interp(np.linspace(0, 1, (len(points)-1) * num_points_between + 1), t, points[:, 1])
+    interpolated_points = [[x, y] for x, y in zip(fx, fy)]
+    return interpolated_points
+
 def savePath(path):
     with open('./static/path.csv', 'w') as f:
         origin = path[0]
@@ -58,18 +67,16 @@ def generate_path():
     if not ucsdMap.addTemporaryNode(start_point, max_distance=50):
         return jsonify({"error": "Current location too far from known paths"}), 400
 
-    # Find path
     path = ucsdMap.shortestPath(start_point, end_point)
     
-    # Clean up temporary nodes
     ucsdMap.removeNode(start_point)
-    
     if path is None:
         return jsonify({"error": "No path found"}), 404
     
     formattedPath = [[node[0], node[1]] for node in path]
-    savePath(formattedPath)
-    return jsonify({"path": formattedPath})
+    interpolatedPath = interpolatePath(formattedPath)
+    savePath(interpolatedPath)
+    return jsonify({"path": interpolatedPath})
 
 @app.route('/get_location')
 def get_location():
