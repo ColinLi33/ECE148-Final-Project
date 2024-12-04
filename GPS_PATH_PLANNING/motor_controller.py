@@ -1,5 +1,8 @@
 from pyvesc.VESC.messages import SetDutyCycle, SetServoPosition
+import pyvesc
 import serial
+import math
+import numpy as np
 
 
 class MotorController:
@@ -17,15 +20,18 @@ class MotorController:
     def set_motor_speed(self, speed):
         if self.vesc:
             try:
-                msg = SetDutyCycle(speed)
-                self.vesc.write(msg.serialize())
+                # Convert speed (-1 to 1) to duty cycle (-100000 to 100000)
+                duty_cycle = speed * 100000
+                message = pyvesc.encode(SetDutyCycle(duty_cycle))
+                self.vesc.write(message)
             except Exception as e:
                 print(f"Failed to set motor speed: {e}")
 
     def set_servo_position(self, position):
         if self.vesc:
             try:
-                msg = SetServoPosition(position)
-                self.vesc.write(msg.serialize())
+                # position should be between 0 and 1
+                message = pyvesc.encode(SetServoPosition(position))
+                self.vesc.write(message)
             except Exception as e:
                 print(f"Failed to set servo position: {e}")

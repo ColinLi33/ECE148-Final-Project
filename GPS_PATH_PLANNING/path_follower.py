@@ -1,12 +1,12 @@
 import math
 import numpy as np
 from motor_controller import MotorController
-
-
 class PathFollower:
     def __init__(self, gps):
         self.gps = gps
         self.motor_controller = MotorController()
+        self.min_distance_threshold = 2.0
+        self.default_speed = 0.1
 
     def interpolate_path(self, path, num_points_between=5):
         points = np.array(path)
@@ -42,7 +42,10 @@ class PathFollower:
         error = (target_heading - current_heading + 360) % 360
         if error > 180:
             error -= 360
-        steering = 0.5 + error / 90.0  # Normalize to range [0.0, 1.0]
+        
+        # Normalize steering to range [0.0, 1.0]
+        # Center is 0.5, left is < 0.5, right is > 0.5
+        steering = 0.5 + (error / 180.0) * 0.5
         return max(0.0, min(1.0, steering))
 
     def follow_path(self, path):
@@ -50,20 +53,40 @@ class PathFollower:
         Path-following logic to move through waypoints.
         :param path: List of waypoints [(lat, long), ...]
         """
-        for waypoint in path:
-            while True:
-                # Calculate distance and heading to the next waypoint
-                latDiff, longDiff = self.lat_long_difference(
-                    (self.gps.current_location["lat"], self.gps.current_location["long"]), waypoint
-                )
-                distance = math.sqrt(latDiff**2 + longDiff**2)
-                target_heading = math.degrees(math.atan2(longDiff, latDiff))
+        try:
+            for waypoint in path:
+                while True:
+                    # Get current GPS location
+                    current_lat = self.gps.current_location["lat"]
+                    current_long = self.gps.current_location["long"]
+                    current_heading = self.gps.current_location["heading"]
 
-                # Adjust motor and servo
-                steering = self.compute_steering(self.gps.current_location["heading"], target_heading)
-                self.motor_controller.set_servo_position(steering)
-                self.motor_controller.set_motor_speed(0.2)  # Moderate speed forward
+                    # Calculate distance and heading to the next waypoint
+                    latDiff, longDiff = self.lat_long_difference(
+                        (current_lat, current_long), waypoint
+                    )
+                    distance = math.sqrt(latDiff**2 + longDiff**2)
+                    target_heading = math.degrees(math.atan2(longDiff, latDiff))
 
-                if distance < 2.0:  # Stop when close to waypoint
-                    self.motor_controller.set_motor_speed(0.0)
-                    break
+                    # Compute steering angle
+                    steering = self.compute_steering(current_heading, target_heading)
+                    
+                    # Apply controls
+                    self.motor_controller.set_servo_position(steering)
+                    self.motor_controller.set_motor_speed(self.default_speed)
+
+                    # Check if we've reached the waypoint
+                    if distance < self.min_distance_threshold:
+                        self.motor_controller.set_motor_speed(0.0)
+                        break
+
+        except Exception as e:
+            print(f"Error in path following: {e}")
+            self.motor_controller.set_motor_speed(0.0)  # Safety stop
+            self.motor_controller.set_servo_position(0.5)  # Center steering
+            raise
+
+        finally:
+            # Ensure the robot stops when done or if there's an error
+            self.motor_controller.set_motor_speed(0.0)
+            self.motor_controller.set_servo_position(0.5)
