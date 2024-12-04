@@ -55,6 +55,7 @@ class PathFollower:
         """
         try:
             for waypoint in path:
+                print(f"Following waypoint: {waypoint}")
                 while True:
                     # Get current GPS location
                     current_lat = self.gps.current_location["lat"]
