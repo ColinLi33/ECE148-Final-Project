@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from motor_controller import MotorController
+import time
 class PathFollower:
     def __init__(self, gps):
         self.gps = gps
