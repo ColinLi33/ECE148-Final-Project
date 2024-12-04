@@ -82,6 +82,7 @@ class PathFollower:
                         # self.motor_controller.set_motor_speed(0.0)
                         print(f"Reached waypoint: {waypoint}")
                         break
+                    time.sleep(.1)
 
         except Exception as e:
             print(f"Error in path following: {e}")
