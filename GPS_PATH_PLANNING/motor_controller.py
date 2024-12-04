@@ -3,7 +3,7 @@ import serial
 
 
 class MotorController:
-    def __init__(self, port="/dev/ttyUSB0", baudrate=115200):
+    def __init__(self, port="/dev/ttyACM0", baudrate=115200):
         self.vesc = None
         self.setup_vesc(port, baudrate)
 

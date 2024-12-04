@@ -22,10 +22,12 @@ class GPS:
                 
                 elif data.startswith('$GPVTG'):  # Heading data
                     msg = pynmea2.parse(data)
+                    print(msg)
                     self.current_location["heading"] = float(msg.true_track)  # True heading
 
                 elif data.startswith('$GPRMC'):  # Alternative heading source
                     msg = pynmea2.parse(data)
+                    print(msg)
                     self.current_location["heading"] = float(msg.true_course)  # Course over ground
 
             except serial.SerialException as e:

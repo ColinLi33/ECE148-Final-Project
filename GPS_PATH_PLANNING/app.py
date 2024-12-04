@@ -5,12 +5,9 @@ from path_follower import PathFollower
 from gps import GPS
 
 app = Flask(__name__)
-
-# Initialize GPS and PathFollower
 gps = GPS()
 path_follower = PathFollower(gps)
 
-# Load the map
 print("Loading Graph...")
 ucsdMap = parseMap("./static/ucsd.geojson")
 print("Generating Map...")
@@ -20,7 +17,6 @@ ucsdMap.generateMap()
 @app.route('/')
 def index():
     return render_template('map.html')
-
 
 @app.route('/generate_path', methods=['POST'])
 def generate_path():
