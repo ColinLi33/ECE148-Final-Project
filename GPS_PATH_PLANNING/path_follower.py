@@ -78,7 +78,8 @@ class PathFollower:
 
                     # Check if we've reached the waypoint
                     if distance < self.min_distance_threshold:
-                        self.motor_controller.set_motor_speed(0.0)
+                        # self.motor_controller.set_motor_speed(0.0)
+                        print(f"Reached waypoint: {waypoint}")
                         break
 
         except Exception as e:
