@@ -19,17 +19,11 @@ class GPS:
                     msg = pynmea2.parse(data)
                     self.current_location["lat"] = msg.latitude
                     self.current_location["long"] = msg.longitude
-                
-                elif data.startswith('$GPVTG'):  # Heading data
+                elif data.startswith('$GNRMC'):  # For heading data
                     msg = pynmea2.parse(data)
                     print(msg)
-                    self.current_location["heading"] = float(msg.true_track)  # True heading
-
-                elif data.startswith('$GPRMC'):  # Alternative heading source
-                    msg = pynmea2.parse(data)
-                    print(msg)
-                    self.current_location["heading"] = float(msg.true_course)  # Course over ground
-
+                    if msg.true_course is not None:  # Check if heading is available
+                        self.current_location["heading"] = msg.true_course
             except serial.SerialException as e:
                 print('Device error: {}'.format(e))
                 break
