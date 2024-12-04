@@ -62,6 +62,7 @@ class PathFollower:
                     current_lat = self.gps.current_location["lat"]
                     current_long = self.gps.current_location["long"]
                     current_heading = self.gps.current_location["heading"]
+                    print("heading", current_heading)
 
                     # Calculate distance and heading to the next waypoint
                     latDiff, longDiff = self.lat_long_difference(
@@ -74,7 +75,7 @@ class PathFollower:
                     steering = self.compute_steering(current_heading, target_heading)
                     
                     # Apply controls
-                    print(steering)
+                    print("steering", steering)
                     # self.motor_controller.set_servo_position(steering)
                     # self.motor_controller.set_motor_speed(self.default_speed)
 
