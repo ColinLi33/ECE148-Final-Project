@@ -4,7 +4,7 @@ from motor_controller import MotorController
 class PathFollower:
     def __init__(self, gps):
         self.gps = gps
-        self.motor_controller = MotorController()
+        # self.motor_controller = MotorController()
         self.min_distance_threshold = 2.0
         self.default_speed = 0.1
 
@@ -72,8 +72,9 @@ class PathFollower:
                     steering = self.compute_steering(current_heading, target_heading)
                     
                     # Apply controls
-                    self.motor_controller.set_servo_position(steering)
-                    self.motor_controller.set_motor_speed(self.default_speed)
+                    print(steering)
+                    # self.motor_controller.set_servo_position(steering)
+                    # self.motor_controller.set_motor_speed(self.default_speed)
 
                     # Check if we've reached the waypoint
                     if distance < self.min_distance_threshold:
@@ -82,11 +83,12 @@ class PathFollower:
 
         except Exception as e:
             print(f"Error in path following: {e}")
-            self.motor_controller.set_motor_speed(0.0)  # Safety stop
-            self.motor_controller.set_servo_position(0.5)  # Center steering
+            # self.motor_controller.set_motor_speed(0.0)  # Safety stop
+            # self.motor_controller.set_servo_position(0.5)  # Center steering
             raise
 
         finally:
+            exit()
             # Ensure the robot stops when done or if there's an error
-            self.motor_controller.set_motor_speed(0.0)
-            self.motor_controller.set_servo_position(0.5)
+            # self.motor_controller.set_motor_speed(0.0)
+            # self.motor_controller.set_servo_position(0.5)
