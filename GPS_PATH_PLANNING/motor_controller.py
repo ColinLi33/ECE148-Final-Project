@@ -22,7 +22,7 @@ class MotorController:
             try:
                 # Convert speed (-1 to 1) to duty cycle (-100000 to 100000)
                 speedFactor = 0.2
-                duty_cycle = speed * 100000 * speedFactor
+                duty_cycle = speed * speedFactor
                 message = pyvesc.encode(SetDutyCycle(duty_cycle))
                 self.vesc.write(message)
             except Exception as e:
