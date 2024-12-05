@@ -20,10 +20,7 @@ class MotorController:
     def set_motor_speed(self, speed):
         if self.vesc:
             try:
-                # Convert speed (-1 to 1) to duty cycle (-100000 to 100000)
-                speedFactor = 0.2
-                duty_cycle = speed * speedFactor
-                message = pyvesc.encode(SetDutyCycle(duty_cycle))
+                message = pyvesc.encode(SetDutyCycle(speed))
                 self.vesc.write(message)
             except Exception as e:
                 print(f"Failed to set motor speed: {e}")

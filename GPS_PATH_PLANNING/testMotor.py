@@ -15,11 +15,11 @@ class VESCController:
 
     def handle_command(self, command):
         if command.lower() == 'w':  # Increase speed
-            self.current_speed = min(1.0, self.current_speed + self.speed_increment)
+            self.current_speed = min(0, self.current_speed + self.speed_increment)
             self.motor.set_motor_speed(self.current_speed)
             
         elif command.lower() == 's':  # Decrease speed
-            self.current_speed = max(-1.0, self.current_speed - self.speed_increment)
+            self.current_speed = max(0, self.current_speed - self.speed_increment)
             self.motor.set_motor_speed(self.current_speed)
             
         elif command.lower() == 'a':  # Turn left

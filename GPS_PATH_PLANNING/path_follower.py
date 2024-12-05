@@ -5,95 +5,126 @@ import time
 class PathFollower:
     def __init__(self, gps):
         self.gps = gps
-        # self.motor_controller = MotorController()
-        self.min_distance_threshold = 2.0
-        self.default_speed = 0.1
+        self.motor_controller = MotorController()
 
-    def interpolate_path(self, path, num_points_between=5):
-        points = np.array(path)
-        t = np.linspace(0, 1, len(points))
-        fx = np.interp(np.linspace(0, 1, (len(points) - 1) * num_points_between + 1), t, points[:, 0])
-        fy = np.interp(np.linspace(0, 1, (len(points) - 1) * num_points_between + 1), t, points[:, 1])
-        interpolated_points = [[x, y] for x, y in zip(fx, fy)]
-        return interpolated_points
+    def interpolate_path(self, path, num_points=3):
+        if not path or len(path) < 2:
+            raise ValueError("Path must have at least two points.")
+        interpolated_path = []
+        for i in range(len(path) - 1):
+            # Current point and next point
+            start = path[i]
+            end = path[i + 1]
+            # Add the start point of the segment
+            interpolated_path.append(start)
+            # Compute x and y differences
+            x_diff = end[0] - start[0]
+            y_diff = end[1] - start[1]
+            # Generate interpolated points
+            for j in range(1, num_points + 1):
+                t = j / (num_points + 1)  # Fraction along the segment
+                x_interpolated = start[0] + t * x_diff
+                y_interpolated = start[1] + t * y_diff
+                interpolated_path.append([x_interpolated, y_interpolated])
+        # Add the final point
+        interpolated_path.append(path[-1])
+        return interpolated_path
+
 
     def save_path(self, path):
         with open('./static/path.csv', 'w') as f:
-            origin = path[0]
             for node in path:
-                latDiff, longDiff = self.lat_long_difference(origin, node)
-                f.write(f'{latDiff},{longDiff},{0.5}\n')
+                f.write(f'{node[0]},{node[1]}\n')
         print("Path saved to path.csv")
 
-    def lat_long_difference(self, origin, node):
-        lat_to_meters = 111320
-        long_to_meters = 40075000 * math.cos(math.radians(origin[0])) / 360
+    def haversine_distance(self, coord1, coord2):
+        """Calculate the great-circle distance between two points on the Earth."""
+        R = 6371000  # Radius of Earth in meters
+        lat1, lon1 = math.radians(coord1[0]), math.radians(coord1[1])
+        lat2, lon2 = math.radians(coord2[0]), math.radians(coord2[1])
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
 
-        latDiff = (node[0] - origin[0]) * lat_to_meters
-        longDiff = (node[1] - origin[1]) * long_to_meters
-        return latDiff, longDiff
+    def calculate_bearing(self, current, target):
+        """Calculate the bearing from current location to target location."""
+        lat1, lon1 = math.radians(current[0]), math.radians(current[1])
+        lat2, lon2 = math.radians(target[0]), math.radians(target[1])
+        dlon = lon2 - lon1
+        x = math.sin(dlon) * math.cos(lat2)
+        y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
+        return (math.degrees(math.atan2(x, y)) + 360) % 360
+    
+    def initialize_direction(self, first_waypoint):
+        print("Initializing direction...")
 
-    def compute_steering(self, current_heading, target_heading):
-        """
-        Compute the steering adjustment to align the robot's heading with the target heading.
-        :param current_heading: float
-        :param target_heading: float
-        :return: float (steering value between 0.0 and 1.0)
-        """
-        error = (target_heading - current_heading + 360) % 360
-        if error > 180:
-            error -= 360
-        
-        # Normalize steering to range [0.0, 1.0]
-        # Center is 0.5, left is < 0.5, right is > 0.5
-        steering = 0.5 + (error / 180.0) * 0.5
-        return max(0.0, min(1.0, steering))
+        # Start moving forward briefly to compute initial heading
+        self.motor_controller.set_motor_speed(0.1)
+        self.motor_controller.set_servo_position(0.5)
+        time.sleep(2)  # Move forward for 2 seconds
 
-    def follow_path(self, path):
-        """
-        Path-following logic to move through waypoints.
-        :param path: List of waypoints [(lat, long), ...]
-        """
-        try:
-            for waypoint in path:
-                print(f"Following waypoint: {waypoint}")
-                while True:
-                    # Get current GPS location
-                    current_lat = self.gps.current_location["lat"]
-                    current_long = self.gps.current_location["long"]
-                    current_heading = self.gps.current_location["heading"]
-                    print("heading", current_heading)
+        # Get current GNSS data
+        target_bearing = self.calculate_bearing([self.gps.current_location['lat'], self.gps.current_location['long']], first_waypoint)
 
-                    # Calculate distance and heading to the next waypoint
-                    latDiff, longDiff = self.lat_long_difference(
-                        (current_lat, current_long), waypoint
-                    )
-                    distance = math.sqrt(latDiff**2 + longDiff**2)
-                    target_heading = math.degrees(math.atan2(longDiff, latDiff))
+        # Adjust steering to align with the target bearing
+        steering_correction = target_bearing - self.gps.current_location['heading']
+        if steering_correction > 180:
+            steering_correction -= 360
+        elif steering_correction < -180:
+            steering_correction += 360
 
-                    # Compute steering angle
-                    steering = self.compute_steering(current_heading, target_heading)
-                    
-                    # Apply controls
-                    print("steering", steering)
-                    # self.motor_controller.set_servo_position(steering)
-                    # self.motor_controller.set_motor_speed(self.default_speed)
+        # Normalize steering correction to [0, 1]
+        steering_position = 0.5 + (steering_correction / 180) * 0.5
+        steering_position = max(0, min(1, steering_position))
 
-                    # Check if we've reached the waypoint
-                    if distance < self.min_distance_threshold:
-                        # self.motor_controller.set_motor_speed(0.0)
-                        print(f"Reached waypoint: {waypoint}")
-                        break
-                    time.sleep(.1)
+        print(f"Initial target bearing: {target_bearing}")
+        print(f"Initial GNSS heading: {self.gps.current_location['heading']}")
+        print(f"Setting initial steering to: {steering_position}")
 
-        except Exception as e:
-            print(f"Error in path following: {e}")
-            # self.motor_controller.set_motor_speed(0.0)  # Safety stop
-            # self.motor_controller.set_servo_position(0.5)  # Center steering
-            raise
+        # Adjust steering to align the robot
+        self.motor_controller.set_servo_position(steering_position)
+        time.sleep(1)  # Allow time for alignment
 
-        finally:
-            exit()
-            # Ensure the robot stops when done or if there's an error
-            # self.motor_controller.set_motor_speed(0.0)
-            # self.motor_controller.set_servo_position(0.5)
+        # Stop briefly before starting regular path following
+        self.notor_controller.set_motor_speed(0)
+        time.sleep(1)
+        print("Initialization complete.")
+
+
+    def follow_path(self, interpolated_path, tolerance=2.0):
+        self.initialize_direction(interpolated_path[0])
+        for waypoint in interpolated_path:
+            while True:
+                # Calculate distance to the waypoint
+                distance = self.haversine_distance([self.gps.current_location['lat'], self.gps.current_location['long']], waypoint)
+                print("Distnace", distance)
+                # Check if waypoint is reached
+                if distance < tolerance:
+                    print(f"Waypoint {waypoint} reached!")
+                    break
+
+                # Calculate bearing to the waypoint
+                target_bearing = self.calculate_bearing([self.gps.current_location['lat'], self.gps.current_location['long']], waypoint)
+
+                # Calculate steering correction
+                steering_correction = target_bearing - self.gps.current_location['heading']
+                if steering_correction > 180:
+                    steering_correction -= 360
+                elif steering_correction < -180:
+                    steering_correction += 360
+
+                steering_position = 0.5 + (steering_correction / 180) * 0.5
+                steering_position = max(0, min(1, steering_position))  # Clamp to [0, 1]
+
+                # Set throttle and steering
+                self.motor_controller.set_motor_speed(0.1)
+                self.motor_controller.set_servo_position(steering_position)
+                print("Steering", steering_position)
+                time.sleep(0.2)
+
+        # Stop the robot at the end
+        self.motor_controller.set_motor_speed(0)
+        self.motor_controller.set_servo_position(0)
+        print("Path completed!")

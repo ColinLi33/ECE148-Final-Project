@@ -34,16 +34,16 @@ def generate_path():
         return jsonify({"error": "No path found"}), 404
 
     formattedPath = [[node[0], node[1]] for node in path]
-    interpolatedPath = path_follower.interpolate_path(formattedPath)
+    interpolatedPath = path_follower.interpolate_path(formattedPath, 5)
     path_follower.save_path(interpolatedPath)
-
     threading.Thread(target=path_follower.follow_path, args=(interpolatedPath,)).start()
+    
     return jsonify({"path": interpolatedPath})
 
 
 @app.route('/get_location')
 def get_location():
-    print(gps.current_location)
+    # print(gps.current_location)
     if gps.current_location["lat"] is not None and gps.current_location["long"] is not None:
         return jsonify(gps.current_location)
     return jsonify({"error": "No GPS fix"}), 404
