@@ -5,28 +5,24 @@ import time
 class PathFollower:
     def __init__(self, gps):
         self.gps = gps
-        self.motor_controller = MotorController()
+        # self.motor_controller = MotorController()
+        self.motor_controller = None
 
     def interpolate_path(self, path, num_points=3):
         if not path or len(path) < 2:
             raise ValueError("Path must have at least two points.")
         interpolated_path = []
         for i in range(len(path) - 1):
-            # Current point and next point
             start = path[i]
             end = path[i + 1]
-            # Add the start point of the segment
             interpolated_path.append(start)
-            # Compute x and y differences
             x_diff = end[0] - start[0]
             y_diff = end[1] - start[1]
-            # Generate interpolated points
             for j in range(1, num_points + 1):
                 t = j / (num_points + 1)  # Fraction along the segment
                 x_interpolated = start[0] + t * x_diff
                 y_interpolated = start[1] + t * y_diff
                 interpolated_path.append([x_interpolated, y_interpolated])
-        # Add the final point
         interpolated_path.append(path[-1])
         return interpolated_path
 
