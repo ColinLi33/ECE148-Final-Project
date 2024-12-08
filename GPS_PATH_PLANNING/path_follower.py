@@ -89,20 +89,62 @@ class PathFollower:
         print("Initialization complete.")
 
 
+    def find_closest_waypoint(self, current_location, waypoints):
+        """
+        Find the closest waypoint that is ahead in the path.
+        Returns the index of the closest waypoint.
+        """
+        min_distance = float('inf')
+        closest_idx = 0
+        
+        for i, waypoint in enumerate(waypoints):
+            distance = self.haversine_distance([current_location['lat'], current_location['long']], waypoint)
+            
+            # Calculate bearing to the waypoint
+            bearing_to_waypoint = self.calculate_bearing(
+                [current_location['lat'], current_location['long']], 
+                waypoint
+            )
+            
+            # Calculate the absolute difference between current heading and bearing to waypoint
+            heading_diff = abs(current_location['heading'] - bearing_to_waypoint)
+            if heading_diff > 180:
+                heading_diff = 360 - heading_diff
+                
+            # Only consider waypoints that are roughly ahead of us (within 90 degrees)
+            if heading_diff < 90 and distance < min_distance:
+                min_distance = distance
+                closest_idx = i
+                
+        return closest_idx
+
     def follow_path(self, interpolated_path, tolerance=2.0):
-        self.initialize_direction(interpolated_path[0])
-        for waypoint in interpolated_path:
+        # Find the closest waypoint to start from
+        start_idx = self.find_closest_waypoint(self.gps.current_location, interpolated_path)
+        print(f"Starting from waypoint index: {start_idx}")
+        
+        self.initialize_direction(interpolated_path[start_idx])
+        
+        # Continue from the closest waypoint
+        for waypoint in interpolated_path[start_idx:]:
             while True:
                 # Calculate distance to the waypoint
-                distance = self.haversine_distance([self.gps.current_location['lat'], self.gps.current_location['long']], waypoint)
-                print("Distnace", distance)
+                distance = self.haversine_distance(
+                    [self.gps.current_location['lat'], self.gps.current_location['long']], 
+                    waypoint
+                )
+                print("Distance", distance)
+                
                 # Check if waypoint is reached
                 if distance < tolerance:
                     print(f"Waypoint {waypoint} reached!")
                     break
 
                 # Calculate bearing to the waypoint
-                target_bearing = self.calculate_bearing([self.gps.current_location['lat'], self.gps.current_location['long']], waypoint)
+                target_bearing = self.calculate_bearing(
+                    [self.gps.current_location['lat'], self.gps.current_location['long']], 
+                    waypoint
+                )
 
                 # Calculate steering correction
                 steering_correction = target_bearing - self.gps.current_location['heading']
