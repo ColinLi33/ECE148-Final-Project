@@ -123,6 +123,7 @@ class PathFollower:
             time.sleep(1)
 
         self.initialize_direction(interpolated_path[0])
+        currIdx = 0
         # currIdx = self.find_closest_waypoint(self.gps.current_location, interpolated_path)
        # Continue from the closest waypoint
         # for waypoint in interpolated_path[start_idx:]:
