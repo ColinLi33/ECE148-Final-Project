@@ -116,20 +116,21 @@ class PathFollower:
         return closest_idx
 
     def follow_path(self, interpolated_path, tolerance=2.0):
+        print("Following path...", interpolated_path)
         # Find the closest waypoint to start from
         while(self.gps.current_location['heading'] == None):
             print(self.gps.current_location)
             time.sleep(1)
 
         self.initialize_direction(interpolated_path[0])
-        currIdx = self.find_closest_waypoint(self.gps.current_location, interpolated_path)
-
-        print(f"Starting from waypoint index: {currIdx}")
+        # currIdx = self.find_closest_waypoint(self.gps.current_location, interpolated_path)
        # Continue from the closest waypoint
         # for waypoint in interpolated_path[start_idx:]:
         while currIdx <= len(interpolated_path):
             currIdx = self.find_closest_waypoint(self.gps.current_location, interpolated_path[currIdx:])
             waypoint = interpolated_path[currIdx]
+            print(f"Starting from waypoint index: {currIdx}")
+
             # Calculate distance to the waypoint
             distance = self.haversine_distance(
                 [self.gps.current_location['lat'], self.gps.current_location['long']],
@@ -161,8 +162,8 @@ class PathFollower:
             # Set throttle and steering
             self.motor_controller.set_motor_speed(0.05)
             self.motor_controller.set_servo_position(steering_position)
-            print("Steering", steering_position)
-            time.sleep(0.2)
+            # print("Steering", steering_position)
+            # time.sleep(0.2)
 
         # Stop the robot at the end
         self.motor_controller.set_motor_speed(0)
