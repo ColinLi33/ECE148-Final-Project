@@ -5,8 +5,7 @@ import time
 class PathFollower:
     def __init__(self, gps):
         self.gps = gps
-        # self.motor_controller = MotorController()
-        self.motor_controller = None
+        self.motor_controller = MotorController()
 
     def interpolate_path(self, path, num_points=3):
         if not path or len(path) < 2:
@@ -52,15 +51,13 @@ class PathFollower:
         x = math.sin(dlon) * math.cos(lat2)
         y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
         return (math.degrees(math.atan2(x, y)) + 360) % 360
-    
+
     def initialize_direction(self, first_waypoint):
         print("Initializing direction...")
 
         # Start moving forward briefly to compute initial heading
-        self.motor_controller.set_motor_speed(0.1)
         self.motor_controller.set_servo_position(0.5)
-        time.sleep(2)  # Move forward for 2 seconds
-
+        self.motor_controller.set_motor_speed_time(0.05, 3)
         # Get current GNSS data
         target_bearing = self.calculate_bearing([self.gps.current_location['lat'], self.gps.current_location['long']], first_waypoint)
 
@@ -84,7 +81,7 @@ class PathFollower:
         time.sleep(1)  # Allow time for alignment
 
         # Stop briefly before starting regular path following
-        self.notor_controller.set_motor_speed(0)
+        self.motor_controller.set_motor_speed(0)
         time.sleep(1)
         print("Initialization complete.")
 
@@ -96,45 +93,48 @@ class PathFollower:
         """
         min_distance = float('inf')
         closest_idx = 0
-        
+
         for i, waypoint in enumerate(waypoints):
             distance = self.haversine_distance([current_location['lat'], current_location['long']], waypoint)
-            
+
             # Calculate bearing to the waypoint
             bearing_to_waypoint = self.calculate_bearing(
-                [current_location['lat'], current_location['long']], 
+                [current_location['lat'], current_location['long']],
                 waypoint
             )
-            
+
             # Calculate the absolute difference between current heading and bearing to waypoint
             heading_diff = abs(current_location['heading'] - bearing_to_waypoint)
             if heading_diff > 180:
                 heading_diff = 360 - heading_diff
-                
+
             # Only consider waypoints that are roughly ahead of us (within 90 degrees)
             if heading_diff < 90 and distance < min_distance:
                 min_distance = distance
                 closest_idx = i
-                
+
         return closest_idx
 
     def follow_path(self, interpolated_path, tolerance=2.0):
         # Find the closest waypoint to start from
+        while(self.gps.current_location['heading'] == None):
+            print(self.gps.current_location)
+            time.sleep(1)
+
+        self.initialize_direction(interpolated_path[0])
         start_idx = self.find_closest_waypoint(self.gps.current_location, interpolated_path)
+
         print(f"Starting from waypoint index: {start_idx}")
-        
-        self.initialize_direction(interpolated_path[start_idx])
-        
-        # Continue from the closest waypoint
+       # Continue from the closest waypoint
         for waypoint in interpolated_path[start_idx:]:
             while True:
                 # Calculate distance to the waypoint
                 distance = self.haversine_distance(
-                    [self.gps.current_location['lat'], self.gps.current_location['long']], 
+                    [self.gps.current_location['lat'], self.gps.current_location['long']],
                     waypoint
                 )
                 print("Distance", distance)
-                
+
                 # Check if waypoint is reached
                 if distance < tolerance:
                     print(f"Waypoint {waypoint} reached!")
@@ -142,7 +142,7 @@ class PathFollower:
 
                 # Calculate bearing to the waypoint
                 target_bearing = self.calculate_bearing(
-                    [self.gps.current_location['lat'], self.gps.current_location['long']], 
+                    [self.gps.current_location['lat'], self.gps.current_location['long']],
                     waypoint
                 )
 
@@ -157,7 +157,7 @@ class PathFollower:
                 steering_position = max(0, min(1, steering_position))  # Clamp to [0, 1]
 
                 # Set throttle and steering
-                self.motor_controller.set_motor_speed(0.1)
+                self.motor_controller.set_motor_speed(0.05)
                 self.motor_controller.set_servo_position(steering_position)
                 print("Steering", steering_position)
                 time.sleep(0.2)

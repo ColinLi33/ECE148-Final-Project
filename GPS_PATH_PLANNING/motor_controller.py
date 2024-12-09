@@ -3,7 +3,7 @@ import pyvesc
 import serial
 import math
 import numpy as np
-
+import time
 
 class MotorController:
     def __init__(self, port="/dev/ttyACM0", baudrate=115200):
@@ -24,6 +24,17 @@ class MotorController:
                 self.vesc.write(message)
             except Exception as e:
                 print(f"Failed to set motor speed: {e}")
+
+    def set_motor_speed_time(self, speed, duration):
+        if self.vesc:
+            try:
+                startTime = time.time()
+                while(time.time() - startTime < duration):
+                    message = pyvesc.encode(SetDutyCycle(speed))
+                    self.vesc.write(message)
+                    time.sleep(0.1)
+            except Exception as e:
+                print(f"Failed to set motor speed for time: {e}")
 
     def set_servo_position(self, position):
         if self.vesc:
