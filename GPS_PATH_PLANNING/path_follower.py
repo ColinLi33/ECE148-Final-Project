@@ -122,45 +122,47 @@ class PathFollower:
             time.sleep(1)
 
         self.initialize_direction(interpolated_path[0])
-        start_idx = self.find_closest_waypoint(self.gps.current_location, interpolated_path)
+        currIdx = self.find_closest_waypoint(self.gps.current_location, interpolated_path)
 
-        print(f"Starting from waypoint index: {start_idx}")
+        print(f"Starting from waypoint index: {currIdx}")
        # Continue from the closest waypoint
-        for waypoint in interpolated_path[start_idx:]:
-            while True:
-                # Calculate distance to the waypoint
-                distance = self.haversine_distance(
-                    [self.gps.current_location['lat'], self.gps.current_location['long']],
-                    waypoint
-                )
-                print("Distance", distance)
+        # for waypoint in interpolated_path[start_idx:]:
+        while currIdx <= len(interpolated_path):
+            currIdx = self.find_closest_waypoint(self.gps.current_location, interpolated_path[currIdx:])
+            waypoint = interpolated_path[currIdx]
+            # Calculate distance to the waypoint
+            distance = self.haversine_distance(
+                [self.gps.current_location['lat'], self.gps.current_location['long']],
+                waypoint
+            )
+            print("Distance", distance)
 
-                # Check if waypoint is reached
-                if distance < tolerance:
-                    print(f"Waypoint {waypoint} reached!")
-                    break
+            # Check if waypoint is reached
+            if distance < tolerance:
+                print(f"Waypoint {waypoint} reached!")
+                break
 
-                # Calculate bearing to the waypoint
-                target_bearing = self.calculate_bearing(
-                    [self.gps.current_location['lat'], self.gps.current_location['long']],
-                    waypoint
-                )
+            # Calculate bearing to the waypoint
+            target_bearing = self.calculate_bearing(
+                [self.gps.current_location['lat'], self.gps.current_location['long']],
+                waypoint
+            )
 
-                # Calculate steering correction
-                steering_correction = target_bearing - self.gps.current_location['heading']
-                if steering_correction > 180:
-                    steering_correction -= 360
-                elif steering_correction < -180:
-                    steering_correction += 360
+            # Calculate steering correction
+            steering_correction = target_bearing - self.gps.current_location['heading']
+            if steering_correction > 180:
+                steering_correction -= 360
+            elif steering_correction < -180:
+                steering_correction += 360
 
-                steering_position = 0.5 + (steering_correction / 180) * 0.5
-                steering_position = max(0, min(1, steering_position))  # Clamp to [0, 1]
+            steering_position = 0.5 + (steering_correction / 180) * 0.5
+            steering_position = max(0, min(1, steering_position))  # Clamp to [0, 1]
 
-                # Set throttle and steering
-                self.motor_controller.set_motor_speed(0.05)
-                self.motor_controller.set_servo_position(steering_position)
-                print("Steering", steering_position)
-                time.sleep(0.2)
+            # Set throttle and steering
+            self.motor_controller.set_motor_speed(0.05)
+            self.motor_controller.set_servo_position(steering_position)
+            print("Steering", steering_position)
+            time.sleep(0.2)
 
         # Stop the robot at the end
         self.motor_controller.set_motor_speed(0)
