@@ -128,7 +128,7 @@ class PathFollower:
        # Continue from the closest waypoint
         # for waypoint in interpolated_path[start_idx:]:
         while currIdx <= len(interpolated_path):
-            currIdx = self.find_closest_waypoint(self.gps.current_location, interpolated_path[currIdx:])
+            currIdx += self.find_closest_waypoint(self.gps.current_location, interpolated_path[currIdx:])
             waypoint = interpolated_path[currIdx]
             print(f"Starting from waypoint index: {currIdx}")
 
