@@ -127,7 +127,7 @@ class PathFollower:
         # currIdx = self.find_closest_waypoint(self.gps.current_location, interpolated_path)
        # Continue from the closest waypoint
         # for waypoint in interpolated_path[start_idx:]:
-        while currIdx <= len(interpolated_path):
+        while currIdx < len(interpolated_path):
             currIdx += self.find_closest_waypoint(self.gps.current_location, interpolated_path[currIdx:])
             waypoint = interpolated_path[currIdx]
             print(f"Starting from waypoint index: {currIdx}")
@@ -141,8 +141,9 @@ class PathFollower:
 
             # Check if waypoint is reached
             if distance < tolerance:
+                currIdx+=1
                 print(f"Waypoint {waypoint} reached!")
-                break
+                continue
 
             # Calculate bearing to the waypoint
             target_bearing = self.calculate_bearing(
@@ -164,7 +165,7 @@ class PathFollower:
             self.motor_controller.set_motor_speed(0.05)
             self.motor_controller.set_servo_position(steering_position)
             # print("Steering", steering_position)
-            # time.sleep(0.2)
+            time.sleep(0.2)
 
         # Stop the robot at the end
         self.motor_controller.set_motor_speed(0)
