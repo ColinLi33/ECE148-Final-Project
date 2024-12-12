@@ -75,11 +75,7 @@ class PathFollower:
         print(f"Initial target bearing: {target_bearing}")
         print(f"Initial GNSS heading: {self.gps.current_location['heading']}")
         print(f"Setting initial steering to: {steering_position}")
-
-        # Adjust steering to align the robot
-        self.motor_controller.set_servo_position(steering_position)
-        time.sleep(1)  # Allow time for alignment
-
+        
         # Stop briefly before starting regular path following
         self.motor_controller.set_motor_speed(0)
         time.sleep(1)
