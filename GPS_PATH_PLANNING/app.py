@@ -3,6 +3,8 @@ import threading
 from createMap import parseMap
 from path_follower import PathFollower
 from gps import GPS
+import signal
+import sys
 
 app = Flask(__name__)
 gps = GPS()
@@ -12,6 +14,13 @@ print("Loading Graph...")
 ucsdMap = parseMap("./static/ucsd.geojson")
 print("Generating Map...")
 ucsdMap.generateMap()
+
+def signal_handler(sig, frame):
+    print('Cleaning up...')
+    if hasattr(path_follower, 'motor_controller'):
+        # Clean up ROS2 node in motor_controller
+        path_follower.motor_controller.cleanup()
+    sys.exit(0)
 
 
 @app.route('/')
@@ -50,6 +59,7 @@ def get_location():
 
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
     print("Starting GPS thread...")
     gps_thread = threading.Thread(target=gps.update, daemon=True)
     gps_thread.start()
