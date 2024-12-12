@@ -77,8 +77,8 @@ class PathFollower:
         print(f"Setting initial steering to: {steering_position}")
 
         # Adjust steering to align the robot
-        self.motor_controller.set_servo_position(steering_position)
-        time.sleep(1)  # Allow time for alignment
+        # self.motor_controller.set_servo_position(steering_position)
+        # time.sleep(1)  # Allow time for alignment
 
         # Stop briefly before starting regular path following
         self.motor_controller.set_motor_speed(0)
@@ -150,9 +150,10 @@ class PathFollower:
                 speed = 0.05
 
             # Calculate proportional steering
-            steering_gain = 0.8  # Adjust this value to make turning more or less aggressive
-            steering_position = 0.5 + (heading_diff / 180) * steering_gain
-            steering_position = max(0.1, min(0.9, steering_position))  # Leave some margin
+            # steering_gain = 0.8  # Adjust this value to make turning more or less aggressive
+            # steering_position = 0.5 + (heading_diff / 180) * steering_gain
+            # steering_position = max(0.1, min(0.9, steering_position))  # Leave some margin
+            steering_position = 0.5 + (heading_diff / 180)
 
             # Apply controls
             self.motor_controller.set_motor_speed(speed)
