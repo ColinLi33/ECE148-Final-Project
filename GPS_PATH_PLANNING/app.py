@@ -36,7 +36,7 @@ def generate_path():
     formattedPath = [[node[0], node[1]] for node in path]
     interpolatedPath = path_follower.interpolate_path(formattedPath, 5)
     path_follower.save_path(interpolatedPath)
-    threading.Thread(target=path_follower.follow_path, args=(interpolatedPath,)).start()
+    # threading.Thread(target=path_follower.follow_path, args=(interpolatedPath,)).start()
 
     return jsonify({"path": interpolatedPath})
 

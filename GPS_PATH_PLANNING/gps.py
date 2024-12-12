@@ -5,8 +5,8 @@ import math
 
 class GPS:
     def __init__(self):
-        self.current_location = {"lat": None, "long": None, "heading": None}
-        # self.current_location = {"lat": 32.8808, "long": -117.2374, "heading": 0}
+        # self.current_location = {"lat": None, "long": None, "heading": None}
+        self.current_location = {"lat": 32.880049, "long": -117.232926, "heading": 0}
 
     def update(self):
         port = "/dev/ttyUSB1"
@@ -24,7 +24,7 @@ class GPS:
                         self.current_location["heading"] = msg.true_course
             except serial.SerialException as e:
                 print('Device error: {}'.format(e))
-                # self.current_location = {"lat": 32.8808, "long": -117.2374, "heading": 0}
+                self.current_location = {"lat": 32.880049, "long": -117.232926, "heading": 0}
                 break
             except pynmea2.ParseError as e:
                 print('Parse error: {}'.format(e))
