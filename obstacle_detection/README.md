@@ -6,7 +6,11 @@ This is a ROS2 package meant for use with a Luxonis OAKD camera, deployed in a d
 
 # Requirements
 
-The code requires the installation of `opencv2`, `depthai`, and other dependencies for the OAKD camera as listed under the [Luxonis documentation](https://docs.luxonis.com/software/depthai/manual-install/) and [Roboflow Docs](https://docs.roboflow.com/deploy/sdks/luxonis-oak)
+The code requires the installation of `opencv2`, `depthai`, `yaml` and other libaries listed as dependencies for the OAKD camera as listed under the [Luxonis documentation](https://docs.luxonis.com/software/depthai/manual-install/) and [Roboflow Docs](https://docs.roboflow.com/deploy/sdks/luxonis-oak) in addition to an installation of ROS2 Humble.
+
+We recommend deployment on a Docker container for version control in case of other packages running different versions of the same libraries.
+
+
 
 # Usage
 
