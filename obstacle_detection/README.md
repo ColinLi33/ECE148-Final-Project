@@ -34,3 +34,4 @@ The user can preview this through the CLI messages, where `-`  is a gap, `#` is 
 
 - Further test edge cases (i.e. when entire view is blocked by obstacles)
 - Implement a graphic window overlaying steering angle, throttle, and avoidance state
+  - We were unsuccessful in resolving a conflict between Qt and OpenCV; A second visualization was interrupting the main ROS2 event loop.
