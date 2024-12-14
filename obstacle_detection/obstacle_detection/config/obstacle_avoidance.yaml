@@ -1,0 +1,12 @@
+#Obstacle Avoidance Configuration
+
+avoidance: true
+
+#Distance thresholds (in meters)
+critical_distance: 3.0
+warning_distance: 10.0
+
+# Obstacle Avoidance Parameters
+viewing_angle: 85.0 # angle width of camera view
+grouping_angle: 15.0 # tolerance for grouping objects
+view_resolution: 15

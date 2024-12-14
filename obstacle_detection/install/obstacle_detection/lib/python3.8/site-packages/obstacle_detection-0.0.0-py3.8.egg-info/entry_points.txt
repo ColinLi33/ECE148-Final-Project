@@ -1,0 +1,4 @@
+[console_scripts]
+obstacle_avoider = obstacle_detection.obstacle_avoidance:main
+obstacle_detection = obstacle_detection.obstacle_detection:main
+

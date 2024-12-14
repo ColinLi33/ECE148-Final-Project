@@ -1,0 +1,16 @@
+#Obstacle Avoidance Configuration
+
+#Enable/Disable visualization
+visualization: true
+
+#Enable/Disable active avoidance
+avoidance: false
+
+#Distance thresholds (in meters)
+critical_distance: 3.0
+warning_distance: 10.0
+
+# RRT Path Planning Parameters
+rrt_lookahead_distance: 4.0
+max_iterations: 100
+step_size: 0.5
