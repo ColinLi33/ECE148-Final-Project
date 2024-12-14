@@ -2,7 +2,7 @@
 
 This is a ROS2 package meant for use with a Luxonis OAKD camera, deployed in a docker container on an NVIDIA Jetson, in order to detect and avoid objects.
 
-![Car image](20241024_150732.jpg)
+<img src="20241024_150732.jpg" alt="Car image" width=200/>
 
 # Requirements
 
